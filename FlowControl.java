@@ -24,28 +24,24 @@ public class FlowControl implements Runnable {
                     });
                 }
 
+                // SUCCESS: the countdown has ended after a successful verification.
+                // Send the accept to iTab FIRST (it relies on verificationResult /
+                // countDownfinished still being true), then reset everything.
                 if (Main.verificationResult.get() && Main.countDownfinished.get()) {
                     Main.iTabHandler.remoteAgeAccept();
-                    Main.authFrame.stopStream();
-                    Main.transVerify.set(false);
                     Main.sentRmoteAgeAccept.set(true);
-                    Main.myCheckerHandler.disableFaceprocess();
-                    Main.verificationResult.set(false);
+                    Main.authFrame.resetAfterCountdown();
                 }
 
+                // TIMEOUT: start the countdown over the timeout image, then reset
+                // everything once that countdown has finished.
                 if (Main.verificationTimeout.get()) {
                     Main.myCheckerHandler.disableFaceprocess();
-                    /*if(!Main.rejectShow){
-                        try {
-                            Thread.sleep(1000);
-                            return;
-                        } catch (Exception e){
-                            e.printStackTrace();
-                        }
-                    }*/
-                    if (!Main.startCountDown.get())
+                    if (!Main.startCountDown.get()) {
                         Main.authFrame.countdown();
-                    //Main.verificationTimeout.set(true);
+                    } else if (Main.countDownfinished.get()) {
+                        Main.authFrame.resetAfterCountdown();
+                    }
                 }
             }
 
