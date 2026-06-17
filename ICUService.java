@@ -120,7 +120,8 @@ public class ICUService implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return response.toString();
+
+        return response != null ? response.toString() : null;
     }
 
 
