@@ -144,7 +144,10 @@ public class AuthFrame extends  JFrame{
     }
 
     protected void updateProcess(){
-        while (!Objects.equals(Main.procesState,"none")) {
+        SwingUtilities.invokeLater(() -> {
+            if (Objects.equals(Main.procesState,"none")) {
+                return;
+            }
             if (Objects.equals(Main.procesState,"processing")){
                 updateDefaultImage("config/noperson.png", 250, 250);
                 updateOverlayFontSize(60);
@@ -168,6 +171,7 @@ public class AuthFrame extends  JFrame{
                 textLayer.setBounds(0, 538, 512, 230);
                 Main.verificationResult.set(true);
                 Main.authFrame.countdown();
+                return;
             }
             if (Objects.equals(Main.procesState,"empty")){
                 updateDefaultImage("config/nodetect.png", 250, 250);
@@ -207,12 +211,14 @@ public class AuthFrame extends  JFrame{
                 textLayer.setBounds(0, 538, 512, 230);
                 return;
             }
-        }
+        });
     }
 
     protected void countdown(){
+        if (!Main.startCountDown.compareAndSet(false, true)) {
+            return; // a countdown is already in progress
+        }
         new Thread(() -> {
-            Main.startCountDown.set(true);
             for (int i = 4; i > 1; i--) {
                 if (i>3){
                     try {
@@ -233,7 +239,6 @@ public class AuthFrame extends  JFrame{
                 }
             }
             Main.countDownfinished.set(true);
-            Main.verificationTimeout.set(true);
             Main.checkCase.set(false);
             Main.authFrame.stopStream();
             updateOverlayFontSize(60);
