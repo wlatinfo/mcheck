@@ -1,0 +1,23 @@
+{
+  "server": {
+    "ip": "localhost",
+    "port": 65003,
+    "log": false
+  },
+  "app": {
+    "title": "Check The Age",
+    "locationX": 570,
+    "locationY": 270,
+    "width": 445,
+    "height": 400,
+    "font": "Segoe UI Variable"
+  },
+  "icu": {
+    "api": "http://localhost:8060",
+    "stream":"http://localhost:8040/stream",
+    "username": "apiuser",
+    "password": "apipassword",
+    "check_wait":15,
+    "log": true
+  }
+}
