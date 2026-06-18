@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.deploy.util.BlackList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,8 +44,8 @@ public class Main {
     protected static int waiting;
     protected static boolean icuLog;
 
-    protected static String tranState="close";
-    protected static String transSession="End session";
+    protected static volatile String tranState="close";
+    protected static volatile String transSession="End session";
 
     public static AtomicBoolean transVerify = new AtomicBoolean(false);
     public static AtomicBoolean transHelp = new AtomicBoolean(false);
@@ -65,7 +64,7 @@ public class Main {
     protected static JSONObject icu;
     protected static int socketPort;
     protected static boolean iTabLog;
-    protected static String procesState="none";
+    protected static volatile String procesState="none";
 
     protected static String title;
     protected static String font;
