@@ -116,6 +116,16 @@ public class ITabSocketServer implements Runnable {
             Main.transSession="start";
             if (Main.sentRmoteAgeAccept.get())
                 Main.sentRmoteAgeAccept.set(false);
+            // Clean slate for a new transaction. If the previous "End session" was
+            // ever missed, stale result/timeout/countdown flags must not block the
+            // next customer's overlay from opening.
+            Main.verificationResult.set(false);
+            Main.verificationTimeout.set(false);
+            Main.countDownfinished.set(false);
+            Main.startCountDown.set(false);
+            Main.checkCase.set(false);
+            Main.approvePrivacy.set(false);
+            Main.procesState = "none";
         }
         if (Objects.equals(msgType,"Help")){
             if (Main.transVerify.get())
@@ -125,8 +135,22 @@ public class ITabSocketServer implements Runnable {
             Main.tranState="open";
             Main.transSession = "scanning";
         }
-        if(Objects.equals(msgType,"Pay session"))
+        if(Objects.equals(msgType,"Pay session")) {
             Main.transSession="payment";
+            // OPERATIVE DEADLINE. The overlay is a full-screen always-on-top window, so
+            // while it is visible the customer cannot reach the pay screen. Entering
+            // payment means any age check has already concluded (accept sent, or it timed
+            // out and staff verified manually), so the overlay MUST be gone by now.
+            // "End session" is two steps later and is too late to rely on. The guard
+            // ensures we never abort a verification that is still genuinely in progress
+            // (which would let an age-restricted sale through unchecked).
+            if (Main.authFrame != null
+                    && (Main.sentRmoteAgeAccept.get()
+                        || Main.verificationTimeout.get()
+                        || Main.countDownfinished.get())) {
+                Main.authFrame.stopStream();
+            }
+        }
         if (Objects.equals(msgType,"End session")){
             Main.transSession="End session";
             Main.tranState="close";
@@ -143,6 +167,14 @@ public class ITabSocketServer implements Runnable {
             Main.countDownfinished.set(false);
             Main.authFrame.textLayer.setColor(Color.WHITE);
             Main.startCountDown.set(false);
+            // Deterministic teardown: the transaction is over, so the overlay MUST be
+            // hidden and the stream stopped here. Previously the only paths that hid the
+            // window were gated on countDownfinished, which this handler resets to false
+            // moments later — so any window still visible at this point stayed frozen on
+            // screen until the next transaction. tranState is already "close", so
+            // FlowControl's open block cannot re-init after this.
+            if (Main.authFrame != null)
+                Main.authFrame.stopStream();
         }
 
     }
