@@ -15,8 +15,14 @@ public class FlowControl implements Runnable {
             }
 
             if (Objects.equals(Main.tranState, "open")) {
-                // Check using .get() for AtomicBoolean
-                if (Main.transVerify.get() && !AuthFrame.initialized && Main.transHelp.get()) {
+                // Check using .get() for AtomicBoolean.
+                // Only ever OPEN the overlay at the start of a verification. Once a
+                // result/timeout/countdown exists, the flow is tearing down — re-opening
+                // here is what left the window stuck visible ("frozen") after success.
+                if (Main.transVerify.get() && !AuthFrame.initialized && Main.transHelp.get()
+                        && !Main.verificationResult.get()
+                        && !Main.verificationTimeout.get()
+                        && !Main.countDownfinished.get()) {
                     Main.authFrame.initialized = true;
                     SwingUtilities.invokeLater(() -> {
                         Main.authFrame.startInitialize(Main.streamurl);
