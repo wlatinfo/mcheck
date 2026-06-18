@@ -148,6 +148,11 @@ public class AuthFrame extends  JFrame{
             if (Objects.equals(Main.procesState,"none")) {
                 return;
             }
+            if(Main.countDownfinished.get()) {
+                videoPanel.updateImage(null);
+                Main.authFrame.setVisible(false);
+                return;
+            }
             if (Objects.equals(Main.procesState,"processing")){
                 updateDefaultImage("config/noperson.png", 250, 250);
                 updateOverlayFontSize(60);
@@ -243,41 +248,6 @@ public class AuthFrame extends  JFrame{
             Main.authFrame.stopStream();
             updateOverlayFontSize(60);
         }).start();
-    }
-
-    /**
-     * Brings the application back to a clean, idle verification state the moment
-     * a countdown (SUCCESS or TIMEOUT) has finished. Called from FlowControl as
-     * soon as the countdown completes, so the NEXT verification starts fresh and
-     * does NOT depend on the "End session" message arriving.
-     *
-     * Notes:
-     *  - The session itself (tranState / transSession) is left untouched, because
-     *    after a successful age accept the customer continues in the same session.
-     *  - sentRmoteAgeAccept is deliberately NOT reset here: on success it was just
-     *    set true to record that the accept was sent, and clearing it could cause a
-     *    duplicate accept. It is reset on the next "Start session" / "End session".
-     */
-    protected void resetAfterCountdown() {
-        // Stream + window teardown (idempotent — safe even if already stopped)
-        stopStream();
-
-        // Stop face processing on the ICU
-        Main.myCheckerHandler.disableFaceprocess();
-
-        // Reset every per-verification / countdown flag back to idle
-        Main.procesState = "none";
-        Main.startCountDown.set(false);
-        Main.countDownfinished.set(false);
-        Main.verificationResult.set(false);
-        Main.verificationTimeout.set(false);
-        Main.checkCase.set(false);
-        Main.approvePrivacy.set(false);
-        Main.transHelp.set(false);
-        Main.transVerify.set(false);
-
-        // Restore the overlay colour on the EDT
-        SwingUtilities.invokeLater(() -> textLayer.setColor(Color.WHITE));
     }
 
     public void updateOverlayFontSize(int fontSize) {
