@@ -45,6 +45,8 @@ public class ICUService implements Runnable {
     protected String fetchJsonResponse(String urlString) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(3000);
+        conn.setReadTimeout(5000);
 
         // 1. Set the Request Method
         conn.setRequestMethod("POST");
@@ -90,6 +92,11 @@ public class ICUService implements Runnable {
             URL url = new URL(urlString);
             HttpURLConnection conn = null;
             conn = (HttpURLConnection) url.openConnection();
+            // Bounded timeouts: the ICU is a third-party product we cannot change. If it
+            // stalls a connection (e.g. while the customer moves out of frame) an
+            // unbounded call would block this polling thread forever and wedge the flow.
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(5000);
             conn.setRequestMethod(method);
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
