@@ -261,20 +261,25 @@ public class AuthFrame extends  JFrame{
     }
 
     protected void stopStream(){
-        SwingUtilities.invokeLater(() -> {
-            videoPanel.updateImage(null);
-            Main.authFrame.setVisible(false);
-            Main.authFrame.updateOverlayText("EDEKA IT");
-            Main.authFrame.updateDefaultImage("config/pic001.jpg",512,768);
-            textLayer.setBounds(0, 638, 512, 150);
-            Main.transVerify.set(false);
-        });
+        // Clear the "open the overlay" triggers BEFORE flipping initialized=false.
+        // Otherwise FlowControl can observe (transVerify==true && initialized==false)
+        // during teardown and re-open the window, leaving it stuck on screen.
+        Main.transVerify.set(false);
+        Main.transHelp.set(false);
         running = false;
         Main.authFrame.initialized = false;
 
         if (producer != null) {
             producer.stop();
         }
+
+        SwingUtilities.invokeLater(() -> {
+            videoPanel.updateImage(null);
+            Main.authFrame.setVisible(false);
+            Main.authFrame.updateOverlayText("EDEKA IT");
+            Main.authFrame.updateDefaultImage("config/pic001.jpg",512,768);
+            textLayer.setBounds(0, 638, 512, 150);
+        });
     }
     protected void startInitialize(String url){
         videoPanel.updateImage(null);
